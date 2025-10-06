@@ -8,11 +8,28 @@ packer {
   }
 }
 
-variable "ubuntu_iso_url"    { type = string }
-variable "ubuntu_iso_sha256" { type = string }
-variable "work_dir"          { type = string  default = "work" }
-variable "output_iso"        { type = string  default = "output/ubuntu-custom.iso" }
-variable "volume_label"      { type = string  default = "Ubuntu-Custom" }
+variable "ubuntu_iso_url" {
+  type = string
+}
+
+variable "ubuntu_iso_sha256" {
+  type = string
+}
+
+variable "work_dir" {
+  type    = string
+  default = "work"
+}
+
+variable "output_iso" {
+  type    = string
+  default = "output/ubuntu-custom.iso"
+}
+
+variable "volume_label" {
+  type    = string
+  default = "Ubuntu-Custom"
+}
 
 source "null" "iso" {
   communicator = "none"
