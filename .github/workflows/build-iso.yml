@@ -1,0 +1,45 @@
+name: Build ISO
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build-iso:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y packer xorriso squashfs-tools rsync wget genisoimage isolinux syslinux-utils git ca-certificates
+
+      - name: Verify variables
+        run: |
+          test -f variables.pkr.hcl
+          grep -q 'ubuntu_iso_url' variables.pkr.hcl
+          if grep -q 'CHANGE_ME_WITH_OFFICIAL_SHA256' variables.pkr.hcl; then
+            echo "::error::Please set ubuntu_iso_sha256 in variables.pkr.hcl"; exit 1
+          fi
+
+      - name: Packer init
+        run: packer init .
+
+      - name: Packer build
+        run: packer build -var-file=variables.pkr.hcl .
+
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ubuntu-custom-iso
+          path: output/ubuntu-custom.iso
+          if-no-files-found: error

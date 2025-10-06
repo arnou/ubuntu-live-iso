@@ -1,0 +1,12 @@
+[Unit]
+Description=Custom first boot tasks (motd installé)
+ConditionPathExists=!/var/lib/firstboot-custom.done
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/firstboot-custom.sh
+RemainAfterExit=yes
+ExecStartPost=/bin/sh -c 'touch /var/lib/firstboot-custom.done'
+
+[Install]
+WantedBy=multi-user.target

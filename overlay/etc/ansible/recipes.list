@@ -1,0 +1,5 @@
+# id|label|playbook|tags|extra_vars_file
+base|Base (utilitaires & sécurité)|site.yml|base|
+dev|Environnement développeur|playbooks/dev.yml||
+docker|Docker (engine + compose)|site.yml|docker|
+office|Suite bureautique|site.yml|office|/etc/ansible/office_vars.yml

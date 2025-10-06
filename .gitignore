@@ -1,0 +1,5 @@
+work/
+output/
+*.iso
+*.swp
+__pycache__/
