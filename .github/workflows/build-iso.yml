@@ -40,7 +40,7 @@ jobs:
         run: packer init .
 
       - name: Packer build
-        run: packer build -var-file=variables.pkr.hcl .
+        run: packer build .
 
       - name: Upload ISO artifact
         uses: actions/upload-artifact@v4
