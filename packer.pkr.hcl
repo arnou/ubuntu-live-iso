@@ -1,11 +1,5 @@
 packer {
   required_version = ">= 1.10.0"
-  required_plugins {
-    null = {
-      version = ">= 1.0.0"
-      source  = "github.com/hashicorp/null"
-    }
-  }
 }
 
 variable "ubuntu_iso_url" {
