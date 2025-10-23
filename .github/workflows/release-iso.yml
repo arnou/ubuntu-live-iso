@@ -4,6 +4,10 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: read
+  actions: write
+
 jobs:
   build:
     uses: ./.github/workflows/build-iso-reusable.yml
