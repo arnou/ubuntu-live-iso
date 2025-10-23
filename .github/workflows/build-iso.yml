@@ -9,42 +9,9 @@ on:
 
 jobs:
   build-iso:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      actions: write
-      id-token: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Add HashiCorp APT repository
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wget gpg lsb-release
-          wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
-          echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y packer xorriso squashfs-tools rsync wget genisoimage isolinux syslinux-utils git ca-certificates
-
-      - name: Verify variables
-        run: |
-          test -f variables.auto.pkrvars.hcl
-          grep -q 'ubuntu_iso_url' variables.auto.pkrvars.hcl
-          if grep -q 'CHANGE_ME_WITH_OFFICIAL_SHA256' variables.auto.pkrvars.hcl; then
-            echo "::error::Please set ubuntu_iso_sha256 in variables.auto.pkrvars.hcl"; exit 1
-          fi
-
-      - name: Packer init
-        run: packer init .
-
-      - name: Packer build
-        run: packer build .
-
-      - name: Upload ISO artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ubuntu-live-custom
-          path: output/ubuntu-live-custom.iso
-          if-no-files-found: error
+    uses: ./.github/workflows/build-iso-reusable.yml
+    with:
+      upload-artifact: true
+      artifact-name: ubuntu-live-custom
+      artifact-path: output/ubuntu-live-custom.iso
+    secrets: inherit
