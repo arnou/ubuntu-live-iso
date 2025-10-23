@@ -18,7 +18,7 @@ packer version
 
 ## 2) Variables ISO
 
-Le fichier `variables.auto.pkrvars.hcl` est **chargé automatiquement** (par défaut Ubuntu 24.04.1 Desktop + SHA256 officiel).
+Le fichier `variables.auto.pkrvars.hcl` est **chargé automatiquement** (par défaut Ubuntu Server 25.10 + SHA256 officiel).
 Pour un ISO local : `ubuntu_iso_url = "file:///chemin/vers/ubuntu.iso"`.
 
 ## 3) Build local
