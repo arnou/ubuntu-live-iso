@@ -27,7 +27,14 @@ EXTRACT="${WORK_DIR}/extract"
 EDIT="${WORK_DIR}/edit"
 OUTDIR="$(dirname "${OUTPUT_ISO}")"
 
-mkdir -p "${WORK_DIR}" "${MNT}" "${EXTRACT}" "${OUTDIR}"
+mkdir -p "${WORK_DIR}" "${OUTDIR}"
+
+if mountpoint -q "${MNT}"; then
+  sudo umount "${MNT}" || true
+fi
+
+sudo rm -rf "${MNT}" "${EXTRACT}" "${EDIT}"
+mkdir -p "${MNT}" "${EXTRACT}" "${EDIT}"
 
 log "Téléchargement ISO: ${UBUNTU_ISO_URL}"
 if [ ! -f "${ISO_DL}" ]; then
@@ -40,9 +47,9 @@ echo "${UBUNTU_ISO_SHA256}  ${ISO_DL}" | sha256sum -c -
 log "Montage ISO"
 sudo mount -o loop "${ISO_DL}" "${MNT}"
 
-# --- Copier l'ISO sans aucun casper/*.squashfs (noms variables selon versions)
-log "Extraction ISO (sans *.squashfs)"
-rsync -a --delete --exclude='/casper/*.squashfs' "${MNT}/" "${EXTRACT}/"
+# --- Copier l'ISO pour modification locale
+log "Extraction ISO (tous les fichiers)"
+rsync -a --delete "${MNT}/" "${EXTRACT}/"
 
 # --- Détecter le SquashFS à modifier (priorité non-*live*, sinon le plus volumineux)
 CASPER_DIR="${MNT}/casper"
@@ -82,6 +89,8 @@ echo "[INFO] SquashFS choisi: ${SQUASHFS_SRC} (base=${BASE})"
 
 # --- Décompression du SquashFS sélectionné ---
 log "Extraction squashfs -> ${EDIT}"
+sudo rm -rf "${EDIT}"
+mkdir -p "${EDIT}"
 unsquashfs -d "${EDIT}" "${SQUASHFS_SRC}"
 
 log "Démontage ISO"
@@ -134,6 +143,7 @@ else
 fi
 
 log "Reconstruction squashfs -> casper/${BASE}.squashfs"
+sudo rm -f "${EXTRACT}/casper/${BASE}.squashfs"
 sudo mksquashfs "${EDIT}" "${EXTRACT}/casper/${BASE}.squashfs" -comp xz -b 1048576
 
 log "Taille filesystem -> casper/${BASE}.size"
