@@ -81,7 +81,7 @@ jobs:
           sed -i "s|IMAGE_REF|${IMAGE}:${TAG_NAME}|" output/ubuntu-live-custom-ghcr.txt
 
       - name: Attach ISO to release
-        if: !startsWith(github.event.release.tag_name, 'v')
+        if: ${{ !startsWith(github.event.release.tag_name, 'v') }}
         uses: softprops/action-gh-release@v1
         with:
           files: output/ubuntu-live-custom.iso
