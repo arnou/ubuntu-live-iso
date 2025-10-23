@@ -3,8 +3,52 @@ set -Eeuo pipefail
 
 export DEBIAN_FRONTEND=noninteractive
 
+# Ensure universe/multiverse repositories are enabled (required for ansible et al.)
+if ! grep -Eq '^[^#].*\buniverse\b' /etc/apt/sources.list; then
+  if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    CODENAME="${UBUNTU_CODENAME:-${VERSION_CODENAME:-}}"
+  fi
+  CODENAME="${CODENAME:-$(lsb_release -cs 2>/dev/null || true)}"
+  if [ -n "${CODENAME}" ]; then
+    cat <<EOF_UNIVERSE >/etc/apt/sources.list.d/universe-multiverse.list
+# Added by chroot-customize.sh to provide universe/multiverse packages
+deb http://archive.ubuntu.com/ubuntu ${CODENAME} universe
+deb http://archive.ubuntu.com/ubuntu ${CODENAME}-updates universe
+deb http://archive.ubuntu.com/ubuntu ${CODENAME} multiverse
+deb http://archive.ubuntu.com/ubuntu ${CODENAME}-updates multiverse
+EOF_UNIVERSE
+  fi
+fi
+
 apt-get update
-apt-get install -y --no-install-recommends   ansible git whiptail vim htop network-manager net-tools wireless-tools wpasupplicant ca-certificates
+
+PACKAGES=(
+  ansible-core
+  git
+  whiptail
+  vim
+  htop
+  network-manager
+  net-tools
+  wireless-tools
+  wpasupplicant
+  ca-certificates
+)
+
+if ! apt-cache show wireless-tools >/dev/null 2>&1; then
+  echo "[INFO] Package wireless-tools unavailable; substituting with iw"
+  NEW_PACKAGES=()
+  for pkg in "${PACKAGES[@]}"; do
+    if [ "${pkg}" != "wireless-tools" ]; then
+      NEW_PACKAGES+=("${pkg}")
+    fi
+  done
+  NEW_PACKAGES+=(iw)
+  PACKAGES=("${NEW_PACKAGES[@]}")
+fi
+
+apt-get install -y --no-install-recommends "${PACKAGES[@]}"
 
 # Activer le service first-boot pour motd installé (optionnel)
 if systemctl list-unit-files | grep -q '^firstboot-custom.service'; then
