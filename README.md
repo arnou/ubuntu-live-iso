@@ -1,10 +1,9 @@
-# ubuntu-live-iso (Packer + Ansible recipes)
+# Build local – Ubuntu Live ISO (Packer + Ansible recipes)
 
-Ce dépôt construit une ISO Ubuntu Live personnalisée et propose un menu de recettes Ansible au premier login de l'OS installé.
+## 1) Prérequis (Ubuntu/Debian)
 
-## Build local
+Installer Packer via le dépôt HashiCorp + outils ISO :
 ```bash
-# Dépôt HashiCorp
 sudo apt-get update
 sudo apt-get install -y wget gpg lsb-release
 wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | \
@@ -12,13 +11,38 @@ wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | \
 echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | \
   sudo tee /etc/apt/sources.list.d/hashicorp.list
 sudo apt-get update
-sudo apt-get install -y packer xorriso squashfs-tools rsync wget genisoimage isolinux syslinux-utils git ca-certificates
-packer init .
-# Éditez variables.pkr.hcl (URL + SHA256)
-packer build -var-file=variables.pkr.hcl .
+sudo apt-get install -y packer xorriso squashfs-tools rsync wget \
+  genisoimage isolinux syslinux-utils git ca-certificates
+packer version
 ```
 
-ISO en sortie: `output/ubuntu-custom.iso`
+## 2) Variables ISO
 
-## GitHub Actions
-À chaque push sur main / PR, l'ISO est construite et publiée en artefact.
+Le fichier `variables.auto.pkrvars.hcl` est **chargé automatiquement** (par défaut Ubuntu 24.04.1 Desktop + SHA256 officiel).
+Pour un ISO local : `ubuntu_iso_url = "file:///chemin/vers/ubuntu.iso"`.
+
+## 3) Build local
+
+```bash
+packer fmt .
+packer validate .
+packer init .
+packer build .
+```
+
+ISO générée : `output/ubuntu-custom.iso`.
+
+## 4) Test rapide (QEMU)
+
+```bash
+qemu-system-x86_64 -m 4096 -smp 2 -enable-kvm \
+  -cdrom output/ubuntu-custom.iso \
+  -boot d
+```
+
+## 5) Notes
+
+* Compatible 22.04 **et** 24.04+ (détection automatique du `.squashfs`).
+* Reconstruction ISO hybride (BIOS/UEFI) via isolinux **ou** GRUB selon l’ISO source.
+* Menu **Ansible** proposé au **premier login** après installation (voir `overlay/etc/ansible/`).
+
