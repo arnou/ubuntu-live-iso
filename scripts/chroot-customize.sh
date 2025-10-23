@@ -3,7 +3,10 @@ set -Eeuo pipefail
 
 export DEBIAN_FRONTEND=noninteractive
 
-# Ensure universe/multiverse repositories are enabled (required for ansible et al.)
+# Ensure universe/multiverse repositories are enabled.
+# Ubuntu Server installers ship with only main enabled by default, so packages
+# like ansible (and dependencies such as sshpass/python3-paramiko pulled in by
+# the PPA) are otherwise missing, which is what the previous CI failure showed.
 if ! grep -Eq '^[^#].*\buniverse\b' /etc/apt/sources.list; then
   if [ -f /etc/os-release ]; then
     . /etc/os-release
