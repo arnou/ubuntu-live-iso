@@ -1,10 +1,9 @@
-# ubuntu-live-iso (Packer + Ansible recipes)
+# Build local – Ubuntu Live ISO (Packer + Ansible recipes)
 
-Ce dépôt construit une ISO Ubuntu Live personnalisée et propose un menu de recettes Ansible au premier login de l'OS installé.
+## 1) Prérequis (Ubuntu/Debian)
 
-## Build local
+Installer Packer via le dépôt HashiCorp + outils ISO :
 ```bash
-# Dépôt HashiCorp
 sudo apt-get update
 sudo apt-get install -y wget gpg lsb-release
 wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | \
@@ -12,13 +11,47 @@ wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | \
 echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | \
   sudo tee /etc/apt/sources.list.d/hashicorp.list
 sudo apt-get update
-sudo apt-get install -y packer xorriso squashfs-tools rsync wget genisoimage isolinux syslinux-utils git ca-certificates
-packer init .
-# Éditez variables.pkr.hcl (URL + SHA256)
-packer build -var-file=variables.pkr.hcl .
+sudo apt-get install -y packer xorriso squashfs-tools rsync wget \
+  genisoimage isolinux syslinux-utils git ca-certificates
+packer version
 ```
 
-ISO en sortie: `output/ubuntu-custom.iso`
+Installer Ansible depuis le PPA officiel recommandé :
+```bash
+sudo apt-get install -y software-properties-common
+sudo add-apt-repository --yes --update ppa:ansible/ansible
+sudo apt-get install -y ansible
+```
 
-## GitHub Actions
-À chaque push sur main / PR, l'ISO est construite et publiée en artefact.
+## 2) Variables ISO
+
+Le fichier `variables.auto.pkrvars.hcl` est **chargé automatiquement** (par défaut Ubuntu Server 25.10 + SHA256 officiel).
+Pour un ISO local : `ubuntu_iso_url = "file:///chemin/vers/ubuntu.iso"`.
+
+## 3) Build local
+
+```bash
+packer fmt .
+packer validate .
+packer init .
+packer build .
+```
+
+ISO générée : `output/ubuntu-live-custom.iso`.
+
+## 4) Test rapide (QEMU)
+
+```bash
+qemu-system-x86_64 -m 4096 -smp 2 -enable-kvm \
+  -cdrom output/ubuntu-live-custom.iso \
+  -boot d
+```
+
+## 5) Notes
+
+* Compatible 22.04 **et** 24.04+ (détection automatique du `.squashfs`).
+* Reconstruction ISO hybride (BIOS/UEFI) via isolinux **ou** GRUB selon l’ISO source.
+* À chaque push sur main / PR, l'ISO est construite et publiée en artefact.
+* L’artefact CI exporte `output/ubuntu-live-custom.iso` (nom aligné avec le projet et le préfixe Packer).
+* Menu **Ansible** proposé au **premier login** après installation (voir `overlay/etc/ansible/`).
+

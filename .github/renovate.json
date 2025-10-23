@@ -1,0 +1,24 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "enabledManagers": ["regex"],
+  "regexManagers": [
+    {
+      "fileMatch": ["^variables\\.auto\\.pkrvars\\.hcl$"],
+      "matchStrings": [
+        "# renovate: datasource=docker depName=library/ubuntu versioning=ubuntu\\nubuntu_iso_url\\s*=\\s*\"https://releases\\.ubuntu\\.com/(?<currentValue>[0-9.]+)/ubuntu-[0-9.]+-live-server-amd64\\.iso\""
+      ],
+      "replaceStringTemplate": "# renovate: datasource=docker depName=library/ubuntu versioning=ubuntu\nubuntu_iso_url    = \"https://releases.ubuntu.com/{{{newValue}}}/ubuntu-{{{newValue}}}-live-server-amd64.iso\"",
+      "postUpgradeTasks": {
+        "commands": [
+          "scripts/renovate/update-ubuntu-sha.py \"{{{newValue}}}\""
+        ],
+        "fileFilters": [
+          "variables.auto.pkrvars.hcl"
+        ]
+      }
+    }
+  ],
+  "onboarding": false,
+  "requireConfig": "ignored"
+}
