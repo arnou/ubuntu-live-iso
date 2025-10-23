@@ -39,7 +39,7 @@ sudo chown -R "$(id -u):$(id -g)" "${WORK_DIR}" "${OUTDIR}" 2>/dev/null || true
 
 log "Téléchargement ISO: ${UBUNTU_ISO_URL}"
 if [ ! -f "${ISO_DL}" ]; then
-  wget -O "${ISO_DL}" "${UBUNTU_ISO_URL}"
+  wget -nv -O "${ISO_DL}" "${UBUNTU_ISO_URL}"
 fi
 
 log "Vérification SHA256"
