@@ -24,7 +24,7 @@ fi
 apt-get update
 
 PACKAGES=(
-  ansible-core
+  ansible
   git
   whiptail
   vim
