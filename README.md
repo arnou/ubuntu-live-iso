@@ -52,7 +52,38 @@ qemu-system-x86_64 -m 4096 -smp 2 -enable-kvm \
 * Compatible 22.04 **et** 24.04+ (détection automatique du `.squashfs`).
 * Reconstruction ISO hybride (BIOS/UEFI) via isolinux **ou** GRUB selon l’ISO source.
 * À chaque push sur main / PR, l'ISO est construite et publiée en artefact.
-* À chaque release GitHub publiée, l'ISO est reconstruite et ajoutée comme asset du tag correspondant.
+* À chaque release GitHub publiée, l'ISO est reconstruite et publiée comme asset si < 2 Go.
+* Pour les tags de release commençant par `v`, l'ISO est poussée vers GHCR (OCI) pour contourner la limite 2 Go.
 * L’artefact CI exporte `output/ubuntu-live-custom.iso` (nom aligné avec le projet et le préfixe Packer).
 * Menu **Ansible** proposé au **premier login** après installation (voir `overlay/etc/ansible/`).
+
+## 6) Releases publiques & téléchargement
+
+### Retrouver la dernière release
+
+```bash
+# Via GitHub CLI
+TAG=$(gh release view --latest --json tagName --jq .tagName)
+echo "Dernière release : $TAG"
+
+# Ou via l'API publique
+curl -s https://api.github.com/repos/OWNER/REPO/releases/latest | jq -r .tag_name
+```
+
+Remplacez `OWNER/REPO` par l'organisation et le nom de dépôt GitHub (ex. `compagnie/ubuntu-live-iso`).
+
+### Télécharger l'ISO depuis GHCR avec ORAS
+
+Les releases taguées `v*` publient l'image en tant qu'artéfact OCI (`ghcr.io/OWNER/ubuntu-live-custom`).
+
+```bash
+# Authentification (nécessite un PAT GitHub avec scope "read:packages" si le dépôt est privé)
+oras login ghcr.io -u GITHUB_USER -p GITHUB_TOKEN
+
+# Récupération de la dernière ISO
+oras pull ghcr.io/OWNER/ubuntu-live-custom:latest
+ls -lh
+```
+
+L'extraction `oras` crée `ubuntu-live-custom.iso` dans le dossier courant. Remplacez `OWNER` par l’organisation GitHub (en minuscules).
 
