@@ -66,18 +66,18 @@ jobs:
           OWNER_LC="${OWNER,,}"
           IMAGE="ghcr.io/${OWNER_LC}/ubuntu-live-custom"
           cat <<'EOF' > output/ubuntu-live-custom-ghcr.txt
-L'image ISO dépasse la limite 2 Go des assets GitHub Releases.
-Elle est publiée en tant qu'artéfact OCI via GHCR.
-
-Téléchargement :
-
-```bash
-oras pull IMAGE_REF
-mv ubuntu-live-custom.iso output/ubuntu-live-custom.iso
-```
-
-Remplacez `IMAGE_REF` par la référence OCI publiée (voir la section Downloads de la release).
-EOF
+          L'image ISO dépasse la limite 2 Go des assets GitHub Releases.
+          Elle est publiée en tant qu'artéfact OCI via GHCR.
+          
+          Téléchargement :
+          
+          ```bash
+          oras pull IMAGE_REF
+          mv ubuntu-live-custom.iso output/ubuntu-live-custom.iso
+          ```
+          
+          Remplacez `IMAGE_REF` par la référence OCI publiée (voir la section Downloads de la release).
+          EOF
           sed -i "s|IMAGE_REF|${IMAGE}:${TAG_NAME}|" output/ubuntu-live-custom-ghcr.txt
 
       - name: Attach ISO to release
