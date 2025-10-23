@@ -35,6 +35,7 @@ fi
 
 sudo rm -rf "${MNT}" "${EXTRACT}" "${EDIT}"
 mkdir -p "${MNT}" "${EXTRACT}" "${EDIT}"
+sudo chown -R "$(id -u):$(id -g)" "${WORK_DIR}" "${OUTDIR}" 2>/dev/null || true
 
 log "Téléchargement ISO: ${UBUNTU_ISO_URL}"
 if [ ! -f "${ISO_DL}" ]; then
@@ -49,7 +50,8 @@ sudo mount -o loop "${ISO_DL}" "${MNT}"
 
 # --- Copier l'ISO pour modification locale
 log "Extraction ISO (tous les fichiers)"
-rsync -a --delete "${MNT}/" "${EXTRACT}/"
+sudo rsync -a --delete "${MNT}/" "${EXTRACT}/"
+sudo chown -R "$(id -u):$(id -g)" "${EXTRACT}"
 
 # --- Détecter le SquashFS à modifier (priorité non-*live*, sinon le plus volumineux)
 CASPER_DIR="${MNT}/casper"
@@ -147,7 +149,7 @@ sudo rm -f "${EXTRACT}/casper/${BASE}.squashfs"
 sudo mksquashfs "${EDIT}" "${EXTRACT}/casper/${BASE}.squashfs" -comp xz -b 1048576
 
 log "Taille filesystem -> casper/${BASE}.size"
-printf $(sudo du -sx --block-size=1 "${EDIT}" | cut -f1) | sudo tee "${EXTRACT}/casper/${BASE}.size" >/dev/null
+printf '%s' "$(sudo du -sx --block-size=1 "${EDIT}" | cut -f1)" | sudo tee "${EXTRACT}/casper/${BASE}.size" >/dev/null
 
 # ---- Reconstruction ISO hybride (BIOS+UEFI) : détecter isolinux vs GRUB
 log "Reconstruction ISO hybride avec xorriso"
@@ -198,6 +200,7 @@ CMD+=(-isohybrid-gpt-basdat -isohybrid-apm-hfsplus .)
 sudo "${CMD[@]}"
 popd >/dev/null
 
-mv "${WORK_DIR}/extract/$(basename "${OUTPUT_ISO}")" "${OUTPUT_ISO}"
+sudo mv "${WORK_DIR}/extract/$(basename "${OUTPUT_ISO}")" "${OUTPUT_ISO}"
+sudo chown "$(id -u):$(id -g)" "${OUTPUT_ISO}"
 
 log "Terminé. ISO générée: ${OUTPUT_ISO}"
