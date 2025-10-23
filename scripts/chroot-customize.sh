@@ -31,22 +31,10 @@ PACKAGES=(
   htop
   network-manager
   net-tools
-  wireless-tools
+  iw
   wpasupplicant
   ca-certificates
 )
-
-if ! apt-cache show wireless-tools >/dev/null 2>&1; then
-  echo "[INFO] Package wireless-tools unavailable; substituting with iw"
-  NEW_PACKAGES=()
-  for pkg in "${PACKAGES[@]}"; do
-    if [ "${pkg}" != "wireless-tools" ]; then
-      NEW_PACKAGES+=("${pkg}")
-    fi
-  done
-  NEW_PACKAGES+=(iw)
-  PACKAGES=("${NEW_PACKAGES[@]}")
-fi
 
 apt-get install -y --no-install-recommends "${PACKAGES[@]}"
 
