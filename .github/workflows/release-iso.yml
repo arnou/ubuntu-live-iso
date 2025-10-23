@@ -1,0 +1,33 @@
+name: Release ISO
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    uses: ./.github/workflows/build-iso-reusable.yml
+    with:
+      upload-artifact: true
+      artifact-name: ubuntu-live-custom
+      artifact-path: output/ubuntu-live-custom.iso
+    secrets: inherit
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download ISO artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ubuntu-live-custom
+          path: output
+
+      - name: Attach ISO to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: output/ubuntu-live-custom.iso
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
