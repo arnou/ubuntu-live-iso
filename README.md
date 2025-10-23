@@ -16,6 +16,13 @@ sudo apt-get install -y packer xorriso squashfs-tools rsync wget \
 packer version
 ```
 
+Installer Ansible depuis le PPA officiel recommandé :
+```bash
+sudo apt-get install -y software-properties-common
+sudo add-apt-repository --yes --update ppa:ansible/ansible
+sudo apt-get install -y ansible
+```
+
 ## 2) Variables ISO
 
 Le fichier `variables.auto.pkrvars.hcl` est **chargé automatiquement** (par défaut Ubuntu Server 25.10 + SHA256 officiel).

@@ -23,6 +23,12 @@ fi
 
 apt-get update
 
+# Install software-properties-common so add-apt-repository is available, then
+# enable the Ansible PPA to get the latest ansible meta package even on interim
+# releases where the main archive may lag behind.
+apt-get install -y --no-install-recommends software-properties-common
+add-apt-repository --yes --update ppa:ansible/ansible
+
 PACKAGES=(
   ansible
   git
