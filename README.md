@@ -51,5 +51,6 @@ qemu-system-x86_64 -m 4096 -smp 2 -enable-kvm \
 
 * Compatible 22.04 **et** 24.04+ (détection automatique du `.squashfs`).
 * Reconstruction ISO hybride (BIOS/UEFI) via isolinux **ou** GRUB selon l’ISO source.
+* À chaque push sur main / PR, l'ISO est construite et publiée en artefact.
 * Menu **Ansible** proposé au **premier login** après installation (voir `overlay/etc/ansible/`).
 
