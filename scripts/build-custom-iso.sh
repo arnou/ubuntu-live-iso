@@ -7,7 +7,7 @@ source "${SCRIPT_DIR}/common.sh"
 : "${UBUNTU_ISO_URL:?}"
 : "${UBUNTU_ISO_SHA256:?}"
 : "${WORK_DIR:=work}"
-: "${OUTPUT_ISO:=output/ubuntu-live-iso.iso}"
+: "${OUTPUT_ISO:=output/ubuntu-live-custom.iso}"
 : "${VOLUME_LABEL:=Ubuntu-Custom}"
 : "${REPO_ROOT:?}"
 

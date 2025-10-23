@@ -1,5 +1,11 @@
 packer {
   required_version = ">= 1.10.0"
+  required_plugins {
+    ubuntu-live-custom = {
+      version = ">= 1.1.0"
+      source  = "github.com/hashicorp/null"
+    }
+  }
 }
 
 variable "ubuntu_iso_url" {
@@ -17,7 +23,7 @@ variable "work_dir" {
 
 variable "output_iso" {
   type    = string
-  default = "output/ubuntu-live-iso.iso"
+  default = "output/ubuntu-live-custom.iso"
 }
 
 variable "volume_label" {
@@ -25,13 +31,12 @@ variable "volume_label" {
   default = "Ubuntu-Custom"
 }
 
-source "null" "iso" {
+source "ubuntu-live-custom" "iso" {
   communicator = "none"
 }
 
 build {
-  name    = "ubuntu-live-iso"
-  sources = ["source.null.iso"]
+  sources = ["source.ubuntu-live-custom.iso"]
 
   provisioner "shell-local" {
     script = "${path.root}/scripts/build-custom-iso.sh"
