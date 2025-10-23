@@ -17,7 +17,7 @@ variable "work_dir" {
 
 variable "output_iso" {
   type    = string
-  default = "output/ubuntu-custom.iso"
+  default = "output/ubuntu-live-custom.iso"
 }
 
 variable "volume_label" {
@@ -30,7 +30,6 @@ source "null" "iso" {
 }
 
 build {
-  name    = "ubuntu-live-iso"
   sources = ["source.null.iso"]
 
   provisioner "shell-local" {
