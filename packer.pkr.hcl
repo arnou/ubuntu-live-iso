@@ -17,7 +17,7 @@ variable "work_dir" {
 
 variable "output_iso" {
   type    = string
-  default = "output/ubuntu-custom.iso"
+  default = "output/ubuntu-live-iso.iso"
 }
 
 variable "volume_label" {

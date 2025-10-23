@@ -37,13 +37,13 @@ packer init .
 packer build .
 ```
 
-ISO générée : `output/ubuntu-custom.iso`.
+ISO générée : `output/ubuntu-live-iso.iso`.
 
 ## 4) Test rapide (QEMU)
 
 ```bash
 qemu-system-x86_64 -m 4096 -smp 2 -enable-kvm \
-  -cdrom output/ubuntu-custom.iso \
+  -cdrom output/ubuntu-live-iso.iso \
   -boot d
 ```
 
@@ -52,5 +52,6 @@ qemu-system-x86_64 -m 4096 -smp 2 -enable-kvm \
 * Compatible 22.04 **et** 24.04+ (détection automatique du `.squashfs`).
 * Reconstruction ISO hybride (BIOS/UEFI) via isolinux **ou** GRUB selon l’ISO source.
 * À chaque push sur main / PR, l'ISO est construite et publiée en artefact.
+* L’artefact CI exporte `output/ubuntu-live-iso.iso` (nom aligné avec le projet, sans suffixe `null`).
 * Menu **Ansible** proposé au **premier login** après installation (voir `overlay/etc/ansible/`).
 
