@@ -7,21 +7,83 @@ export DEBIAN_FRONTEND=noninteractive
 # Ubuntu Server installers ship with only main enabled by default, so packages
 # like ansible (and dependencies such as sshpass/python3-paramiko pulled in by
 # the PPA) are otherwise missing, which is what the previous CI failure showed.
-if ! grep -Eq '^[^#].*\buniverse\b' /etc/apt/sources.list; then
+component_configured() {
+  local component="$1" file word_boundary
+
+  word_boundary="(^|[^A-Za-z0-9+_.-])${component}([^A-Za-z0-9+_.-]|$)"
+
+  if [ -f /etc/apt/sources.list ] && \
+    grep -Eq "^[[:space:]]*[^#].*${word_boundary}" /etc/apt/sources.list; then
+    return 0
+  fi
+
+  shopt -s nullglob
+  for file in /etc/apt/sources.list.d/*.list; do
+    if grep -Eq "^[[:space:]]*[^#].*${word_boundary}" "${file}"; then
+      shopt -u nullglob
+      return 0
+    fi
+  done
+  shopt -u nullglob
+
+  if python3 - "$component" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+component = sys.argv[1].lower()
+pattern = re.compile(r'^\s*components?:.*\b' + re.escape(component) + r'\b', re.I | re.M)
+
+for path in Path('/etc/apt/sources.list.d').glob('*.sources'):
+    try:
+        text = path.read_text()
+    except FileNotFoundError:
+        continue
+
+    # Merge continuation lines and drop comments so that multi-line values are
+    # easier to match using the regex above.
+    text = re.sub(r'\n[ \t]+', ' ', text)
+    cleaned_lines = []
+    for line in text.splitlines():
+        cleaned_lines.append(line.split('#', 1)[0])
+    cleaned = '\n'.join(cleaned_lines)
+
+    if pattern.search(cleaned):
+        sys.exit(0)
+
+sys.exit(1)
+PY
+  then
+    return 0
+  fi
+
+  return 1
+}
+
+missing_components=()
+for component in universe multiverse; do
+  if ! component_configured "${component}"; then
+    missing_components+=("${component}")
+  fi
+done
+
+if ((${#missing_components[@]})); then
   if [ -f /etc/os-release ]; then
     . /etc/os-release
     CODENAME="${UBUNTU_CODENAME:-${VERSION_CODENAME:-}}"
   fi
   CODENAME="${CODENAME:-$(lsb_release -cs 2>/dev/null || true)}"
   if [ -n "${CODENAME}" ]; then
-    cat <<EOF_UNIVERSE >/etc/apt/sources.list.d/universe-multiverse.list
-# Added by chroot-customize.sh to provide universe/multiverse packages
-deb http://archive.ubuntu.com/ubuntu ${CODENAME} universe
-deb http://archive.ubuntu.com/ubuntu ${CODENAME}-updates universe
-deb http://archive.ubuntu.com/ubuntu ${CODENAME} multiverse
-deb http://archive.ubuntu.com/ubuntu ${CODENAME}-updates multiverse
-EOF_UNIVERSE
+    {
+      echo "# Added by chroot-customize.sh to provide universe/multiverse packages"
+      for component in "${missing_components[@]}"; do
+        echo "deb http://archive.ubuntu.com/ubuntu ${CODENAME} ${component}"
+        echo "deb http://archive.ubuntu.com/ubuntu ${CODENAME}-updates ${component}"
+      done
+    } >/etc/apt/sources.list.d/universe-multiverse.list
   fi
+else
+  rm -f /etc/apt/sources.list.d/universe-multiverse.list
 fi
 
 apt-get update
