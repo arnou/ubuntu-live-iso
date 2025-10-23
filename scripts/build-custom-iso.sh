@@ -201,7 +201,7 @@ CMD+=(-isohybrid-gpt-basdat -isohybrid-apm-hfsplus .)
 sudo "${CMD[@]}"
 popd >/dev/null
 
-sudo mv "${WORK_DIR}/extract/$(basename "${OUTPUT_ISO}")" "${OUTPUT_ISO}"
+sudo mv "${WORK_DIR}/$(basename "${OUTPUT_ISO}")" "${OUTPUT_ISO}"
 sudo chown "$(id -u):$(id -g)" "${OUTPUT_ISO}"
 
 log "Terminé. ISO générée: ${OUTPUT_ISO}"
