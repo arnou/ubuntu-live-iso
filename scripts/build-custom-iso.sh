@@ -105,6 +105,14 @@ if [ -d "${REPO_ROOT}/overlay" ]; then
   rsync -a "${REPO_ROOT}/overlay/" "${EDIT}/"
 fi
 
+# ---- Résolution DNS pour chroot
+RESOLV_CONF="${EDIT}/etc/resolv.conf"
+RESOLV_BACKUP="${EDIT}/etc/resolv.conf.orig"
+if [ -e "${RESOLV_CONF}" ] || [ -L "${RESOLV_CONF}" ]; then
+  sudo cp -a "${RESOLV_CONF}" "${RESOLV_BACKUP}"
+fi
+sudo cp /etc/resolv.conf "${RESOLV_CONF}"
+
 # ---- Préparation chroot
 log "Préparation chroot"
 sudo mount --bind /dev  "${EDIT}/dev"
@@ -130,6 +138,12 @@ sudo chroot "${EDIT}" /bin/bash -c "
   umount /dev/pts || true
 " || true
 sudo umount "${EDIT}/dev" || true
+
+if [ -f "${RESOLV_BACKUP}" ] || [ -L "${RESOLV_BACKUP}" ]; then
+  sudo mv -Tf "${RESOLV_BACKUP}" "${RESOLV_CONF}"
+else
+  sudo rm -f "${RESOLV_CONF}"
+fi
 
 # ---- Manifest(s) & squashfs
 if [ -f "${EXTRACT}/casper/${BASE}.manifest" ]; then
