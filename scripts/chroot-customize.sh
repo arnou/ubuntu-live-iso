@@ -30,7 +30,10 @@ apt-get update
 # enable the Ansible PPA to get the latest ansible meta package even on interim
 # releases where the main archive may lag behind.
 apt-get install -y --no-install-recommends software-properties-common
-add-apt-repository --yes --update ppa:ansible/ansible
+if ! add-apt-repository --yes --update ppa:ansible/ansible; then
+  echo "Warning: unable to enable ppa:ansible/ansible; continuing without it" >&2
+  apt-get update
+fi
 
 PACKAGES=(
   ansible
