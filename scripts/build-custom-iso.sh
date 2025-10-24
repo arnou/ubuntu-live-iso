@@ -59,10 +59,10 @@ if [ -d "${EXTRACT}/isolinux" ]; then
   sudo rm -rf "${EXTRACT}/isolinux"
 fi
 
-# Patch GRUB pour définir la langue/clavier en FR + activer autoinstall NoCloud
+# Patch GRUB pour définir la langue/clavier en FR + activer autoinstall NoCloud-Net
 GRUB_CFG="${EXTRACT}/boot/grub/grub.cfg"
 if [ -f "${GRUB_CFG}" ]; then
-  log "Patch GRUB: langue FR + clavier FR + autoinstall NoCloud"
+  log "Patch GRUB: langue FR + clavier FR + autoinstall NoCloud-Net"
   sudo cp -a "${GRUB_CFG}" "${GRUB_CFG}.bak"
   sudo sed -i -E '/^[[:space:]]*set[[:space:]]+timeout=/d;/^[[:space:]]*set[[:space:]]+default=/d;/^[[:space:]]*set[[:space:]]+lang=/d' "${GRUB_CFG}"
   sudo sed -i '1i set default=0' "${GRUB_CFG}"
@@ -71,8 +71,9 @@ if [ -f "${GRUB_CFG}" ]; then
   if ! grep -q 'locale=fr_FR.UTF-8' "${GRUB_CFG}"; then
     sudo sed -E -i 's|(linux[[:space:]]+/casper/\S+.*) ---|\1 locale=fr_FR.UTF-8 keyboard-configuration/layoutcode=fr console-setup/layoutcode=fr ---|g' "${GRUB_CFG}"
   fi
-  if ! grep -q 'autoinstall ds=nocloud\\;s=/cdrom/autoinstall/' "${GRUB_CFG}"; then
-    sudo sed -E -i 's|(linux[[:space:]]+/casper/\S+.*) ---|\1 autoinstall ds=nocloud\\;s=/cdrom/autoinstall/ ---|g' "${GRUB_CFG}"
+  sudo sed -E -i 's|autoinstall ds=nocloud\\;s=/cdrom/autoinstall/|autoinstall ds=nocloud-net\\;s=file:///autoinstall/|g' "${GRUB_CFG}"
+  if ! grep -q 'autoinstall ds=nocloud-net\\;s=file:///autoinstall/' "${GRUB_CFG}"; then
+    sudo sed -E -i 's|(linux[[:space:]]+/casper/\S+.*) ---|\1 autoinstall ds=nocloud-net\\;s=file:///autoinstall/ ---|g' "${GRUB_CFG}"
   fi
 else
   log "GRUB: ${GRUB_CFG} introuvable (aucune modification appliquée)"
@@ -130,15 +131,14 @@ if [ -d "${REPO_ROOT}/overlay" ]; then
   rsync -a "${REPO_ROOT}/overlay/" "${EDIT}/"
 fi
 
-# ---- Copie des fichiers autoinstall (NoCloud) dans l'ISO
+# ---- Vérification des fichiers autoinstall (NoCloud)
 AUTOINSTALL_SRC="${REPO_ROOT}/overlay/autoinstall"
 if [ -d "${AUTOINSTALL_SRC}" ]; then
   if [ ! -f "${AUTOINSTALL_SRC}/luks.keyfile" ]; then
     echo "[ERR] ${AUTOINSTALL_SRC}/luks.keyfile introuvable" >&2
     exit 1
   fi
-  log "Copie autoinstall/ -> ISO"
-  rsync -a "${AUTOINSTALL_SRC}/" "${EXTRACT}/autoinstall/"
+  log "Profil autoinstall détecté (utilisé via file:///autoinstall/)"
 else
   echo "[WARN] Dossier ${AUTOINSTALL_SRC} introuvable (autoinstall ignoré)" >&2
 fi

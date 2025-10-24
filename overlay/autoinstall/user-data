@@ -44,11 +44,11 @@ autoinstall:
         device: disk0
         size: -1
 
-      # LUKS : clé fournie par fichier (voir /cdrom/autoinstall/luks.keyfile)
+      # LUKS : clé fournie par fichier (accessible via /autoinstall/luks.keyfile)
       - id: luks-root
         type: dm_crypt
         volume: part-crypt
-        keyfile: /cdrom/autoinstall/luks.keyfile
+        keyfile: /autoinstall/luks.keyfile
         cipher: aes-xts-plain64
         hash: sha256
 
