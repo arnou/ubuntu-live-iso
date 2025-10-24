@@ -108,9 +108,15 @@ PACKAGES=(
   iw
   wpasupplicant
   ca-certificates
+  locales
+  console-setup
+  keyboard-configuration
 )
 
 apt-get install -y --no-install-recommends "${PACKAGES[@]}"
+
+locale-gen fr_FR.UTF-8
+update-locale LANG=fr_FR.UTF-8
 
 # Activer le service first-boot pour motd installé (optionnel)
 if systemctl list-unit-files | grep -q '^firstboot-custom.service'; then
