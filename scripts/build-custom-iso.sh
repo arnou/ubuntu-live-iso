@@ -53,6 +53,28 @@ log "Extraction ISO (tous les fichiers)"
 sudo rsync -a --delete "${MNT}/" "${EXTRACT}/"
 sudo chown -R "$(id -u):$(id -g)" "${EXTRACT}"
 
+# Supprime isolinux pour forcer l'utilisation de GRUB (bios/uefi)
+if [ -d "${EXTRACT}/isolinux" ]; then
+  log "Suppression isolinux (GRUB uniquement)"
+  sudo rm -rf "${EXTRACT}/isolinux"
+fi
+
+# Patch GRUB pour définir la langue/clavier par défaut en FR
+GRUB_CFG="${EXTRACT}/boot/grub/grub.cfg"
+if [ -f "${GRUB_CFG}" ]; then
+  log "Patch GRUB: langue FR + clavier FR"
+  sudo cp -a "${GRUB_CFG}" "${GRUB_CFG}.bak"
+  sudo sed -i -E '/^[[:space:]]*set[[:space:]]+timeout=/d;/^[[:space:]]*set[[:space:]]+default=/d;/^[[:space:]]*set[[:space:]]+lang=/d' "${GRUB_CFG}"
+  sudo sed -i '1i set default=0' "${GRUB_CFG}"
+  sudo sed -i '1i set timeout=5' "${GRUB_CFG}"
+  sudo sed -i '1i set lang=fr_FR' "${GRUB_CFG}"
+  if ! grep -q 'locale=fr_FR.UTF-8' "${GRUB_CFG}"; then
+    sudo sed -E -i 's|(linux[[:space:]]+/casper/\S+.*) ---|\1 locale=fr_FR.UTF-8 keyboard-configuration/layoutcode=fr console-setup/layoutcode=fr ---|g' "${GRUB_CFG}"
+  fi
+else
+  log "GRUB: ${GRUB_CFG} introuvable (aucune modification appliquée)"
+fi
+
 # --- Détecter le SquashFS à modifier (priorité non-*live*, sinon le plus volumineux)
 CASPER_DIR="${MNT}/casper"
 if [ ! -d "${CASPER_DIR}" ]; then
