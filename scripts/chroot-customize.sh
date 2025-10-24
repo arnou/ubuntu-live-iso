@@ -127,6 +127,11 @@ fi
 apt-get clean
 rm -rf /var/lib/apt/lists/*
 
+# Activer fix-dns service au boot de la Live
+if systemctl list-unit-files | grep -q '^fix-dns.service'; then
+  systemctl enable fix-dns.service || true
+fi
+
 # --- Fix sudo/sudoers permissions (idempotent) ---
 echo "[INFO] Vérification des permissions sudo/sudoers"
 if [ -f /etc/sudoers ]; then
