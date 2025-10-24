@@ -118,23 +118,6 @@ apt-get install -y --no-install-recommends "${PACKAGES[@]}"
 locale-gen fr_FR.UTF-8
 update-locale LANG=fr_FR.UTF-8
 
-# Réparation sudoers
-if [ -f /etc/sudoers ]; then
-    chown root:root /etc/sudoers || true
-    chmod 440 /etc/sudoers || true
-fi
-
-# Fix privileges for sudo / sudo-rs
-if [ -x /usr/bin/sudo-rs ]; then
-    chown root:root /usr/bin/sudo-rs || true
-    chmod 4755 /usr/bin/sudo-rs || true
-fi
-if [ -x /usr/bin/sudo ]; then
-    chown root:root /usr/bin/sudo || true
-    chmod 4755 /usr/bin/sudo || true
-fi
-
-
 # Activer le service first-boot pour motd installé (optionnel)
 if systemctl list-unit-files | grep -q '^firstboot-custom.service'; then
   systemctl enable firstboot-custom.service || true
@@ -143,3 +126,37 @@ fi
 # Nettoyage
 apt-get clean
 rm -rf /var/lib/apt/lists/*
+
+# --- Fix sudo/sudoers permissions (idempotent) ---
+echo "[INFO] Vérification des permissions sudo/sudoers"
+if [ -f /etc/sudoers ]; then
+  chown root:root /etc/sudoers || true
+  chmod 0440 /etc/sudoers || true
+fi
+if [ -d /etc/sudoers.d ]; then
+  chown root:root /etc/sudoers.d || true
+  chmod 0750 /etc/sudoers.d || true
+  # Nettoyage fichiers parasites (sauvegardes, dpkg-old, etc.)
+  find /etc/sudoers.d -maxdepth 1 -type f \( -name '*~' -o -name '*.bak' -o -name '*.dpkg-*' -o -name '*.orig' \) -delete \
+    || true
+  # Droits corrects sur les fragments
+  find /etc/sudoers.d -maxdepth 1 -type f -exec chown root:root {} \; -exec chmod 0440 {} \; \
+    || true
+fi
+# Binaire sudo ou sudo-rs : root:root + setuid
+if [ -x /usr/bin/sudo-rs ]; then
+  chown root:root /usr/bin/sudo-rs || true
+  chmod 4755 /usr/bin/sudo-rs || true
+fi
+if [ -x /usr/bin/sudo ]; then
+  chown root:root /usr/bin/sudo || true
+  chmod 4755 /usr/bin/sudo || true
+fi
+# Validation syntaxique sudoers silencieuse
+if command -v visudo >/dev/null 2>&1; then
+  visudo -c >/dev/null 2>&1 || true
+  for f in /etc/sudoers.d/*; do
+    [ -f "$f" ] && visudo -cf "$f" >/dev/null 2>&1 || true
+  done
+fi
+echo "[OK] Permissions sudo/sudoers corrigées"
