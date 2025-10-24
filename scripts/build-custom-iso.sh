@@ -128,7 +128,9 @@ sudo umount "${MNT}"
 # ---- Superposition overlay -> rootfs
 if [ -d "${REPO_ROOT}/overlay" ]; then
   log "Copie overlay/ -> EDIT"
-  rsync -a "${REPO_ROOT}/overlay/" "${EDIT}/"
+  rsync -a --chown=0:0 --chmod=D755,F644 \
+        --exclude 'autoinstall/luks.keyfile' \
+        "${REPO_ROOT}/overlay/" "${EDIT}/"
 fi
 
 # ---- Vérification des fichiers autoinstall (NoCloud)
