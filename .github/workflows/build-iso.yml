@@ -9,10 +9,13 @@ on:
 
 permissions:
   contents: read
-  actions: write
+  actions: read
 
 jobs:
   build-iso:
+    permissions:
+      contents: read
+      actions: read
     uses: ./.github/workflows/build-iso-reusable.yml
     with:
       upload-artifact: true
