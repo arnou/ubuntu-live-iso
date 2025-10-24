@@ -130,6 +130,19 @@ if [ -d "${REPO_ROOT}/overlay" ]; then
   rsync -a "${REPO_ROOT}/overlay/" "${EDIT}/"
 fi
 
+# ---- Copie des fichiers autoinstall (NoCloud) dans l'ISO
+AUTOINSTALL_SRC="${REPO_ROOT}/overlay/autoinstall"
+if [ -d "${AUTOINSTALL_SRC}" ]; then
+  if [ ! -f "${AUTOINSTALL_SRC}/luks.keyfile" ]; then
+    echo "[ERR] ${AUTOINSTALL_SRC}/luks.keyfile introuvable" >&2
+    exit 1
+  fi
+  log "Copie autoinstall/ -> ISO"
+  rsync -a "${AUTOINSTALL_SRC}/" "${EXTRACT}/autoinstall/"
+else
+  echo "[WARN] Dossier ${AUTOINSTALL_SRC} introuvable (autoinstall ignoré)" >&2
+fi
+
 # ---- Résolution DNS pour chroot
 RESOLV_CONF="${EDIT}/etc/resolv.conf"
 RESOLV_BACKUP="${EDIT}/etc/resolv.conf.orig"
