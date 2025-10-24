@@ -60,14 +60,14 @@ qemu-system-x86_64 -m 4096 -smp 2 -enable-kvm \
 La dernière ISO générée par le workflow `Build ISO` (branche `main`) est disponible via **nightly.link** :
 
 ```
-https://nightly.link/arnou/ubuntu-live-custom/workflows/build-iso/main/ubuntu-live-custom.zip
+https://nightly.link/arnou/ubuntu-live-iso/workflows/build-iso/main/ubuntu-live-custom.zip
 ```
 
 ### Téléchargement automatisé
 
 ```bash
 curl -L -o ubuntu-live-custom.zip \
-  https://nightly.link/arnou/ubuntu-live-custom/workflows/build-iso/main/ubuntu-live-custom.zip
+  https://nightly.link/arnou/ubuntu-live-iso/workflows/build-iso/main/ubuntu-live-custom.zip
 unzip ubuntu-live-custom.zip
 ls -lh ubuntu-live-custom.iso
 ```
