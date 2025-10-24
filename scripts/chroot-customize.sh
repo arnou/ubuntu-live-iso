@@ -118,6 +118,12 @@ apt-get install -y --no-install-recommends "${PACKAGES[@]}"
 locale-gen fr_FR.UTF-8
 update-locale LANG=fr_FR.UTF-8
 
+# Réparation sudoers
+if [ -f /etc/sudoers ]; then
+    chown root:root /etc/sudoers || true
+    chmod 440 /etc/sudoers || true
+fi
+
 # Fix privileges for sudo / sudo-rs
 if [ -x /usr/bin/sudo-rs ]; then
     chown root:root /usr/bin/sudo-rs || true
