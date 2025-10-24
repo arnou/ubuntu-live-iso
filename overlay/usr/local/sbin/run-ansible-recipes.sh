@@ -6,6 +6,15 @@ CONF="/etc/ansible/recipes.conf"
 LIST="/etc/ansible/recipes.list"
 LOG="/var/log/ansible-recipes.log"
 
+if (( EUID != 0 )); then
+  if command -v sudo >/dev/null 2>&1; then
+    exec sudo "$0" "$@"
+  else
+    printf '%s\n' "[ERR] Droits insuffisants pour exécuter les recettes Ansible" >&2
+    exit 1
+  fi
+fi
+
 exec >>"$LOG" 2>&1
 
 [ -d /run/casper ] && exit 0
