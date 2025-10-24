@@ -1,0 +1,117 @@
+#cloud-config
+autoinstall:
+  version: 1
+  locale: fr_FR.UTF-8
+  keyboard:
+    layout: fr
+  timezone: Europe/Paris
+  identity:
+    hostname: ubuntu-btrfs
+    username: utilisateur
+    # Mot de passe hashé SHA-512 pour l'utilisateur (exemple: "ubuntu").
+    # Remplace-le par ton propre hash (mkpasswd --method=SHA-512 ou openssl passwd -6)
+    password: "$6$6r4Do0kI1M$gz7mg5G7KFS9FZ9CfJdReuPhctg5sD4QfdFZsSzA6UOCmBFs4WZEn6Y0dCRQixQY69p6XqVZkqEkb7/ZZvzhq."
+
+  # Stockage : GPT, EFI, /boot non chiffré, racine Btrfs chiffrée (LUKS via keyfile).
+  storage:
+    layout:
+      name: custom
+    config:
+      # Disque cible (le plus grand par défaut)
+      - id: disk0
+        type: disk
+        match:
+          size: largest
+        ptable: gpt
+        wipe: superblock-recursive
+
+      # Partition EFI (FAT32)
+      - id: part-efi
+        type: partition
+        device: disk0
+        size: 550M
+        flag: boot
+
+      # Partition /boot non chiffrée (ext4)
+      - id: part-boot
+        type: partition
+        device: disk0
+        size: 1G
+
+      # Partition chiffrée (reste du disque)
+      - id: part-crypt
+        type: partition
+        device: disk0
+        size: -1
+
+      # LUKS : clé fournie par fichier (accessible via /autoinstall/luks.keyfile)
+      - id: luks-root
+        type: dm_crypt
+        volume: part-crypt
+        keyfile: /autoinstall/luks.keyfile
+        cipher: aes-xts-plain64
+        hash: sha256
+
+      # Système de fichiers Btrfs sur LUKS
+      - id: fs-btrfs
+        type: format
+        volume: luks-root
+        fstype: btrfs
+
+      # Sous-volumes Btrfs
+      - id: subvol-root
+        type: btrfs_subvolume
+        volume: fs-btrfs
+        name: "@"
+      - id: subvol-home
+        type: btrfs_subvolume
+        volume: fs-btrfs
+        name: "@home"
+      - id: subvol-var
+        type: btrfs_subvolume
+        volume: fs-btrfs
+        name: "@var"
+
+      # Montages
+      - id: mnt-root
+        type: mount
+        device: subvol-root
+        path: /
+      - id: mnt-home
+        type: mount
+        device: subvol-home
+        path: /home
+      - id: mnt-var
+        type: mount
+        device: subvol-var
+        path: /var
+
+      # /boot (ext4)
+      - id: fs-boot
+        type: format
+        volume: part-boot
+        fstype: ext4
+      - id: mnt-boot
+        type: mount
+        device: fs-boot
+        path: /boot
+
+      # /boot/efi (FAT32)
+      - id: fs-efi
+        type: format
+        volume: part-efi
+        fstype: fat32
+      - id: mnt-efi
+        type: mount
+        device: fs-efi
+        path: /boot/efi
+
+  # (Optionnel) Paquets supplémentaires pendant l'installation
+  packages:
+    - btrfs-progs
+    - snapper
+    - btrfsmaintenance
+    - grub-btrfs
+
+  # (Optionnel) Commandes tardives : laisser vide ici, car ton service first-boot s'occupe de Snapper
+  late-commands: []

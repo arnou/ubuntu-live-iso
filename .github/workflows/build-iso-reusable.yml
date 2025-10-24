@@ -52,6 +52,13 @@ jobs:
       - name: Packer init
         run: packer init .
 
+      - name: Generate LUKS keyfile
+        run: |
+          mkdir -p overlay/autoinstall
+          # umask 177 -> fichier 600
+          ( umask 177 && head -c 64 /dev/urandom > overlay/autoinstall/luks.keyfile )
+          sha256sum overlay/autoinstall/luks.keyfile | tee overlay/autoinstall/luks.keyfile.sha256
+
       - name: Packer build
         run: packer build .
 
@@ -62,6 +69,17 @@ jobs:
           name: ${{ inputs.artifact-name }}
           path: ${{ inputs.artifact-path }}
           retention-days: 90
+          compression-level: 0
+          if-no-files-found: error
+
+      - name: Upload LUKS keyfile artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: luks-keyfile
+          path: |
+            overlay/autoinstall/luks.keyfile
+            overlay/autoinstall/luks.keyfile.sha256
+          retention-days: 30
           compression-level: 0
           if-no-files-found: error
 

@@ -1,5 +1,8 @@
 work/
 output/
 *.iso
+# clé LUKS autoinstall (ne jamais la committer)
+overlay/autoinstall/luks.keyfile
+overlay/autoinstall/luks.keyfile.sha256
 *.swp
 __pycache__/
