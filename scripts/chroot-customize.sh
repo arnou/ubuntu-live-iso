@@ -118,6 +118,17 @@ apt-get install -y --no-install-recommends "${PACKAGES[@]}"
 locale-gen fr_FR.UTF-8
 update-locale LANG=fr_FR.UTF-8
 
+# Fix privileges for sudo / sudo-rs
+if [ -x /usr/bin/sudo-rs ]; then
+    chown root:root /usr/bin/sudo-rs || true
+    chmod 4755 /usr/bin/sudo-rs || true
+fi
+if [ -x /usr/bin/sudo ]; then
+    chown root:root /usr/bin/sudo || true
+    chmod 4755 /usr/bin/sudo || true
+fi
+
+
 # Activer le service first-boot pour motd installé (optionnel)
 if systemctl list-unit-files | grep -q '^firstboot-custom.service'; then
   systemctl enable firstboot-custom.service || true
