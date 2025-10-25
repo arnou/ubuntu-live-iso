@@ -74,3 +74,14 @@ ls -lh ubuntu-live-custom.iso
 
 Le fichier ISO est empaqueté dans une archive ZIP (format standard des artefacts GitHub Actions).
 
+## TODO
+
+* Préparer les recettes Ansible pour intégrer les outils suivants, regroupés par usage :
+  * **Kubernetes & conteneurs** : kubectl, k9s, Docker.
+  * **Runtimes & IDE** : SDKMAN!, IntelliJ IDEA, VSCodium.
+  * **Bases de données** : psql.
+  * **Terminal & accès distant** : Kitty, TigerVNC.
+  * **Virtualisation** : QEMU.
+  * **Sécurité** : antivirus (solution à déterminer).
+  * **Outils divers** : Winboat (à préciser / documenter).
+
