@@ -41,10 +41,19 @@ ISO générée : `output/ubuntu-live-custom.iso`.
 
 ## 4) Test rapide (QEMU)
 
+Créer un disque virtuel avant le lancement (ex. 30 Go en qcow2) :
+
+```bash
+qemu-img create -f qcow2 disk.qcow2 30G
+```
+
+Puis démarrer la machine virtuelle en attachant l'ISO et le disque :
+
 ```bash
 qemu-system-x86_64 -m 4096 -smp 2 -enable-kvm \
-  -cdrom output/ubuntu-live-custom.iso \
-  -boot d
+  -cdrom output/ubuntu-live-custom.iso -netdev user,id=n1 -device virtio-net,netdev=n1 \
+  -monitor stdio -boot d \
+  -drive file=disk.qcow2,if=virtio,format=qcow2
 ```
 
 ## 5) Notes
@@ -85,3 +94,63 @@ Le fichier ISO est empaqueté dans une archive ZIP (format standard des artefact
   * **Sécurité** : antivirus (solution à déterminer).
   * **Outils divers** : Winboat (à préciser / documenter).
 
+
+# 📸 Snapshots automatiques Btrfs
+
+## 🔍 Présentation
+
+L’image Ubuntu custom génère et configure automatiquement **Snapper** et **grub-btrfs** lors du premier démarrage du système installé.
+
+- **Snapper** crée des snapshots Btrfs avant et après les mises à jour ou à intervalles réguliers.  
+- **btrfsmaintenance** nettoie et équilibre automatiquement le système de fichiers.  
+- **grub-btrfs** rend les snapshots accessibles depuis le menu GRUB, pour revenir à un état antérieur du système.
+
+---
+
+## ⚙️ Structure des sous-volumes
+
+Le partitionnement automatique configure les sous-volumes suivants :
+
+| Point de montage | Sous-volume | Description |
+|------------------|-------------|--------------|
+| `/`              | `@`         | racine du système (snapshots visibles dans GRUB) |
+| `/home`          | `@home`     | données utilisateurs |
+| `/var`           | `@var`      | journaux, bases et caches |
+| `/.snapshots`    | `@snapshots`| stockage des snapshots système |
+
+Les snapshots `/home` et `/var` sont aussi gérés par Snapper, mais **non affichés dans GRUB** (restauration manuelle uniquement).
+
+---
+
+## 🛠️ Services activés
+
+| Service | Rôle |
+|----------|------|
+| `snapper-timeline.timer` | crée automatiquement des snapshots à intervalles réguliers |
+| `snapper-cleanup.timer` | supprime les anciens snapshots selon la politique définie |
+| `btrfsmaintenance-refresh.timer` | planifie les tâches d’entretien (scrub, balance) |
+| `btrfsmaintenance-balance.timer` | rééquilibre automatiquement les blocs |
+| `firstboot-snapper-setup.service` | exécute la configuration initiale au premier boot |
+
+---
+
+## 📦 Localisation
+
+| Élément | Chemin |
+|----------|--------|
+| Script d’initialisation | `/usr/local/sbin/firstboot-snapper-setup.sh` |
+| Log d’exécution | `/var/log/firstboot-snapper-setup.log` |
+| Configurations Snapper | `/etc/snapper/configs/{root,home,var}` |
+| Snapshots | `/.snapshots/`, `/home/.snapshots/`, `/var/.snapshots/` |
+
+---
+
+## 🔄 Commandes utiles
+
+### 📋 Lister les snapshots
+
+```bash
+sudo snapper -c root list
+sudo snapper -c home list
+sudo snapper -c var list
+```
