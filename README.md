@@ -41,10 +41,19 @@ ISO générée : `output/ubuntu-live-custom.iso`.
 
 ## 4) Test rapide (QEMU)
 
+Créer un disque virtuel avant le lancement (ex. 30 Go en qcow2) :
+
+```bash
+qemu-img create -f qcow2 disk.qcow2 30G
+```
+
+Puis démarrer la machine virtuelle en attachant l'ISO et le disque :
+
 ```bash
 qemu-system-x86_64 -m 4096 -smp 2 -enable-kvm \
-  -cdrom output/ubuntu-live-custom.iso \
-  -boot d
+  -cdrom output/ubuntu-live-custom.iso -netdev user,id=n1 -device virtio-net,netdev=n1 \
+  -monitor stdio -boot d \
+  -drive file=disk.qcow2,if=virtio,format=qcow2
 ```
 
 ## 5) Notes
