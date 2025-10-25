@@ -1,8 +1,34 @@
-# Build local – Ubuntu Live ISO (Packer + Ansible recipes)
+# Ubuntu Live ISO – Build local (Packer + Ansible)
 
-## 1) Prérequis (Ubuntu/Debian)
+## Sommaire
 
-Installer Packer via le dépôt HashiCorp + outils ISO :
+1. [Présentation](#présentation)
+2. [Prérequis](#prérequis-ubuntudebian)
+3. [Variables Packer](#variables-packer)
+4. [Compilation de l’ISO](#compilation-de-liso)
+5. [Tests rapides avec QEMU](#tests-rapides-avec-qemu)
+6. [Télécharger la dernière ISO CI](#télécharger-la-dernière-iso-ci)
+7. [Feuille de route](#feuille-de-route)
+8. [Snapshots automatiques Btrfs](#-snapshots-automatiques-btrfs)
+
+---
+
+## Présentation
+
+Recettes Packer + Ansible pour construire une image Ubuntu Live personnalisée. Les builds sont exécutables localement et via CI, avec génération d’une ISO hybride (BIOS/UEFI) nommée `output/ubuntu-live-custom.iso`.
+
+### Points clés
+
+* Compatible Ubuntu 22.04, 24.04+ **et** 25.10 (détection automatique du `.squashfs`).
+* Publication automatique de l’ISO via GitHub Actions (`Build ISO`).
+* Menu **Ansible** disponible dès le premier login (voir `overlay/etc/ansible/`).
+
+---
+
+## Prérequis (Ubuntu/Debian)
+
+### Installer Packer et les outils ISO
+
 ```bash
 sudo apt-get update
 sudo apt-get install -y wget gpg lsb-release
@@ -16,19 +42,29 @@ sudo apt-get install -y packer xorriso squashfs-tools rsync wget \
 packer version
 ```
 
-Installer Ansible depuis le PPA officiel recommandé :
+### Installer Ansible
+
 ```bash
 sudo apt-get install -y software-properties-common
 sudo add-apt-repository --yes --update ppa:ansible/ansible
 sudo apt-get install -y ansible
 ```
 
-## 2) Variables ISO
+---
 
-Le fichier `variables.auto.pkrvars.hcl` est **chargé automatiquement** (par défaut Ubuntu Server 25.10 + SHA256 officiel).
-Pour un ISO local : `ubuntu_iso_url = "file:///chemin/vers/ubuntu.iso"`.
+## Variables Packer
 
-## 3) Build local
+Le fichier `variables.auto.pkrvars.hcl` est **chargé automatiquement** (par défaut, Ubuntu Server 25.10 + SHA256 officiel).
+
+Pour utiliser un ISO local :
+
+```hcl
+ubuntu_iso_url = "file:///chemin/vers/ubuntu.iso"
+```
+
+---
+
+## Compilation de l’ISO
 
 ```bash
 packer fmt .
@@ -37,17 +73,19 @@ packer init .
 packer build .
 ```
 
-ISO générée : `output/ubuntu-live-custom.iso`.
+L’ISO générée est disponible dans `output/ubuntu-live-custom.iso`.
 
-## 4) Test rapide (QEMU)
+---
 
-Créer un disque virtuel avant le lancement (ex. 30 Go en qcow2) :
+## Tests rapides avec QEMU
+
+Créer d’abord un disque virtuel (ex. 30 Go en qcow2) :
 
 ```bash
 qemu-img create -f qcow2 disk.qcow2 30G
 ```
 
-Puis démarrer la machine virtuelle en attachant l'ISO et le disque :
+Lancer ensuite la machine virtuelle :
 
 ```bash
 qemu-system-x86_64 -m 4096 -smp 2 -enable-kvm \
@@ -56,17 +94,11 @@ qemu-system-x86_64 -m 4096 -smp 2 -enable-kvm \
   -drive file=disk.qcow2,if=virtio,format=qcow2
 ```
 
-## 5) Notes
+---
 
-* Compatible 22.04 **et** 24.04+ (détection automatique du `.squashfs`).
-* Reconstruction ISO hybride (BIOS/UEFI) via isolinux **ou** GRUB selon l’ISO source.
-* À chaque push sur main / PR, l'ISO est construite et publiée en artefact CI.
-* L’artefact CI exporte `output/ubuntu-live-custom.iso` (nom aligné avec le projet et le préfixe Packer).
-* Menu **Ansible** proposé au **premier login** après installation (voir `overlay/etc/ansible/`).
+## Télécharger la dernière ISO CI
 
-## 6) Téléchargement de la dernière ISO CI
-
-La dernière ISO générée par le workflow `Build ISO` (branche `main`) est disponible via **nightly.link** :
+Le workflow GitHub Actions `Build ISO` (branche `main`) publie automatiquement une archive via **nightly.link** :
 
 ```
 https://nightly.link/arnou/ubuntu-live-iso/workflows/build-iso/main/ubuntu-live-custom.zip
@@ -81,11 +113,13 @@ unzip ubuntu-live-custom.zip
 ls -lh ubuntu-live-custom.iso
 ```
 
-Le fichier ISO est empaqueté dans une archive ZIP (format standard des artefacts GitHub Actions).
+L’ISO est fournie dans une archive ZIP (format standard des artefacts GitHub Actions).
 
-## TODO
+---
 
-* Préparer les recettes Ansible pour intégrer les outils suivants, regroupés par usage :
+## Feuille de route
+
+* Préparer les recettes Ansible pour intégrer les outils suivants (par usage) :
   * **Kubernetes & conteneurs** : kubectl, k9s, Docker.
   * **Runtimes & IDE** : SDKMAN!, IntelliJ IDEA, VSCodium.
   * **Bases de données** : psql.
@@ -93,17 +127,19 @@ Le fichier ISO est empaqueté dans une archive ZIP (format standard des artefact
   * **Virtualisation** : QEMU.
   * **Sécurité** : antivirus (solution à déterminer).
   * **Outils divers** : Winboat (à préciser / documenter).
+* Ajouter une déclinaison avec les environnements de bureau **KDE Plasma**, **GNOME**, **Xfce** et **Hyprland**.
 
+---
 
 # 📸 Snapshots automatiques Btrfs
 
 ## 🔍 Présentation
 
-L’image Ubuntu custom génère et configure automatiquement **Snapper** et **grub-btrfs** lors du premier démarrage du système installé.
+L’image Ubuntu custom configure automatiquement **Snapper** et **grub-btrfs** lors du premier démarrage du système installé.
 
-- **Snapper** crée des snapshots Btrfs avant et après les mises à jour ou à intervalles réguliers.  
-- **btrfsmaintenance** nettoie et équilibre automatiquement le système de fichiers.  
-- **grub-btrfs** rend les snapshots accessibles depuis le menu GRUB, pour revenir à un état antérieur du système.
+* **Snapper** crée des snapshots Btrfs avant/après les mises à jour ou à intervalles réguliers.
+* **btrfsmaintenance** nettoie et équilibre automatiquement le système de fichiers.
+* **grub-btrfs** rend les snapshots accessibles depuis GRUB pour revenir à un état antérieur.
 
 ---
 
@@ -112,32 +148,32 @@ L’image Ubuntu custom génère et configure automatiquement **Snapper** et **g
 Le partitionnement automatique configure les sous-volumes suivants :
 
 | Point de montage | Sous-volume | Description |
-|------------------|-------------|--------------|
-| `/`              | `@`         | racine du système (snapshots visibles dans GRUB) |
-| `/home`          | `@home`     | données utilisateurs |
-| `/var`           | `@var`      | journaux, bases et caches |
-| `/.snapshots`    | `@snapshots`| stockage des snapshots système |
+|------------------|-------------|-------------|
+| `/`              | `@`         | Racine du système (snapshots visibles dans GRUB) |
+| `/home`          | `@home`     | Données utilisateurs |
+| `/var`           | `@var`      | Journaux, bases et caches |
+| `/.snapshots`    | `@snapshots`| Stockage des snapshots système |
 
-Les snapshots `/home` et `/var` sont aussi gérés par Snapper, mais **non affichés dans GRUB** (restauration manuelle uniquement).
+Les snapshots `/home` et `/var` sont également gérés par Snapper, mais **non affichés dans GRUB** (restauration manuelle uniquement).
 
 ---
 
 ## 🛠️ Services activés
 
 | Service | Rôle |
-|----------|------|
-| `snapper-timeline.timer` | crée automatiquement des snapshots à intervalles réguliers |
-| `snapper-cleanup.timer` | supprime les anciens snapshots selon la politique définie |
-| `btrfsmaintenance-refresh.timer` | planifie les tâches d’entretien (scrub, balance) |
-| `btrfsmaintenance-balance.timer` | rééquilibre automatiquement les blocs |
-| `firstboot-snapper-setup.service` | exécute la configuration initiale au premier boot |
+|---------|------|
+| `snapper-timeline.timer` | Crée automatiquement des snapshots à intervalles réguliers |
+| `snapper-cleanup.timer` | Supprime les anciens snapshots selon la politique définie |
+| `btrfsmaintenance-refresh.timer` | Planifie les tâches d’entretien (scrub, balance) |
+| `btrfsmaintenance-balance.timer` | Rééquilibre automatiquement les blocs |
+| `firstboot-snapper-setup.service` | Exécute la configuration initiale au premier boot |
 
 ---
 
 ## 📦 Localisation
 
 | Élément | Chemin |
-|----------|--------|
+|---------|--------|
 | Script d’initialisation | `/usr/local/sbin/firstboot-snapper-setup.sh` |
 | Log d’exécution | `/var/log/firstboot-snapper-setup.log` |
 | Configurations Snapper | `/etc/snapper/configs/{root,home,var}` |
