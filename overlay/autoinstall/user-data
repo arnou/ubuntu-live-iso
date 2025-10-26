@@ -5,6 +5,15 @@ autoinstall:
   keyboard:
     layout: fr
   timezone: Europe/Paris
+
+  # ⛔ Désactiver snapd pendant l'installation (empêche curtin de tenter des snaps)
+  debconf-selections:
+    snapd/no_snap: true
+
+  # Ceintures + bretelles : si snapd était présent, on le masque très tôt
+  early-commands:
+    - curtin in-target -- systemctl mask snapd.service snapd.socket snapd.seeded.service || true
+
   identity:
     hostname: ubuntu-btrfs
     username: utilisateur
@@ -113,5 +122,5 @@ autoinstall:
     - btrfsmaintenance
     - grub-btrfs
 
-  # (Optionnel) Commandes tardives : laisser vide ici, car ton service first-boot s'occupe de Snapper
-  late-commands: []
+  # Pas de snaps installés par Subiquity
+  snaps: []
