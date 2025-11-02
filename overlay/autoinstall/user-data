@@ -6,14 +6,6 @@ autoinstall:
     layout: fr
   timezone: Europe/Paris
 
-  # ⛔ Désactiver snapd pendant l'installation (empêche curtin de tenter des snaps)
-  debconf-selections: |
-    snapd snapd/no_snap boolean true
-
-  # Ceintures + bretelles : si snapd était présent, on le masque très tôt
-  early-commands:
-    - curtin in-target -- systemctl mask snapd.service snapd.socket snapd.seeded.service || true
-
   identity:
     hostname: ubuntu-btrfs
     username: utilisateur
