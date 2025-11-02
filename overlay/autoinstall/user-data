@@ -7,8 +7,8 @@ autoinstall:
   timezone: Europe/Paris
 
   # ⛔ Désactiver snapd pendant l'installation (empêche curtin de tenter des snaps)
-  debconf-selections:
-    snapd/no_snap: true
+  debconf-selections: |
+    snapd snapd/no_snap boolean true
 
   # Ceintures + bretelles : si snapd était présent, on le masque très tôt
   early-commands:
