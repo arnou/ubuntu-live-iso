@@ -1,6 +1,10 @@
 #cloud-config
 autoinstall:
   version: 1
+  # Empêche Subiquity/Curtin d'essayer de rafraîchir ses snaps lors du démarrage.
+  # Dans un environnement sans accès direct au Snap Store (proxy, réseau filtré),
+  # cette tentative échoue avec un code de retour 100 et stoppe l'installation.
+  refresh-installer: false
   locale: fr_FR.UTF-8
   keyboard:
     layout: fr
