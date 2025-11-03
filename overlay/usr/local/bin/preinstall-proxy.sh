@@ -17,20 +17,20 @@ echo "[preinstall-proxy] $(date -Is) start"
 # -------- Heuristiques CNIEG (adapte si besoin) --------
 is_cnieg() {
   # 1) Passerelle ou routes privées usuelles (ex: 10.200.0.0/16)
-  if ip route | grep -Eq '(^default .* via 10\.200\.| 10\.200\.)'; then
+  if ip route | grep -Eq '(^default .* via 172\.30\.| 172\.31\.)'; then
     echo "[detect] default route or route in 10.200.0.0/16" ; return 0
   fi
   # 2) Adresse IP locale dans une plage interne CNIEG (ajoute/édite)
-  if ip -4 addr show | grep -Eq 'inet 10\.200\.|inet 172\.20\.'; then
+  if ip -4 addr show | grep -Eq 'inet 172\.30\.|inet 172\.31\.'; then
     echo "[detect] local IP in known CNIEG ranges" ; return 0
   fi
   # 3) DNS ou domaine comportant 'cnieg'
-  if grep -qi 'cnieg' /etc/resolv.conf 2>/dev/null; then
-    echo "[detect] resolv.conf mentions cnieg" ; return 0
+  if grep -qi 'ieg' /etc/resolv.conf 2>/dev/null; then
+    echo "[detect] resolv.conf mentions ieg" ; return 0
   fi
   # 4) Résolveurs internes connus (exemple : 10.200.0.53)
-  if grep -Eq 'nameserver[[:space:]]+10\.200\.' /etc/resolv.conf 2>/dev/null; then
-    echo "[detect] internal nameserver 10.200.x.x" ; return 0
+  if grep -Eq 'nameserver[[:space:]]+172\.30\.11\.' /etc/resolv.conf 2>/dev/null; then
+    echo "[detect] internal nameserver 172.30.11.x" ; return 0
   fi
   return 1
 }
@@ -38,7 +38,7 @@ is_cnieg() {
 default_proxy_for_cnieg() {
   # RENSEIGNE ici l’URL proxy officielle CNIEG si connue :
   # ex: echo "http://proxy.cnieg.fr:8080"
-  echo "http://proxy.cnieg.fr:8080"
+  echo "http://p64apt01.iegp.edfgdf.fr:8080"
 }
 
 apply_proxy() {
