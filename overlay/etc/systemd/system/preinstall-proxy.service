@@ -1,0 +1,15 @@
+[Unit]
+Description=Optional proxy configuration before Subiquity
+# Lancer AVANT l’installateur (service snap-subiquity) pour que curtin récupère le proxy
+Before=snap-subiquity.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/preinstall-proxy.sh
+RemainAfterExit=yes
+# Permet l'interaction si lancé depuis la console
+StandardInput=tty
+StandardOutput=journal+console
+
+[Install]
+WantedBy=multi-user.target
