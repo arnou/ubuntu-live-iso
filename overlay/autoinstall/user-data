@@ -115,12 +115,18 @@ autoinstall:
   # (Optionnel) Paquets supplémentaires pendant l'installation
   packages:
     - btrfs-progs
-    - snapper
-    - btrfsmaintenance
-    - grub-btrfs
 
   # Pas de snaps installés par Subiquity
   snaps: []
+
+  late-commands:
+    - |
+      curtin in-target --target=/target -- bash -c '
+        set -euo pipefail
+        export DEBIAN_FRONTEND=noninteractive
+        apt-get update
+        apt-get install -y snapper btrfsmaintenance grub-btrfs
+      '
 
 write_files:
   - path: /usr/local/share/ca-certificates/cnieg-ca.crt
