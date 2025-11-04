@@ -112,10 +112,6 @@ autoinstall:
         device: fs-efi
         path: /boot/efi
 
-  # (Optionnel) Paquets supplémentaires pendant l'installation
-  packages:
-    - btrfs-progs
-
   # Pas de snaps installés par Subiquity
   snaps: []
 
@@ -125,7 +121,7 @@ autoinstall:
         set -euo pipefail
         export DEBIAN_FRONTEND=noninteractive
         apt-get update
-        apt-get install -y snapper btrfsmaintenance grub-btrfs
+        apt-get install -y btrfs-progs snapper btrfsmaintenance grub-btrfs
       '
 
 write_files:
