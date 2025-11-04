@@ -11,7 +11,7 @@ autoinstall:
     username: utilisateur
     # Mot de passe hashé SHA-512 pour l'utilisateur (exemple: "ubuntu").
     # Remplace-le par ton propre hash (mkpasswd --method=SHA-512 ou openssl passwd -6)
-    password: "$6$6r4Do0kI1M$gz7mg5G7KFS9FZ9CfJdReuPhctg5sD4QfdFZsSzA6UOCmBFs4WZEn6Y0dCRQixQY69p6XqVZkqEkb7/ZZvzhq."
+    password: "$6$ONXEWFkXcxoqlx9O$ZlvXyVbBgMwqzyav8BrEv.R8KcicV7ymrlzrCIstGgqsZ405j0Q95olMUdyg5On/8FjruIV2JM9LBUC2n8Awi0"
 
   # Stockage : GPT, EFI, /boot non chiffré, racine Btrfs chiffrée (LUKS via keyfile).
   storage:
