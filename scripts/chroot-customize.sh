@@ -127,10 +127,6 @@ fi
 apt-get clean
 rm -rf /var/lib/apt/lists/*
 
-# Activer fix-dns service au boot de la Live
-if systemctl list-unit-files | grep -q '^fix-dns.service'; then
-  systemctl enable fix-dns.service || true
-fi
 # Activer la configuration proxy AVANT Subiquity
 if systemctl list-unit-files | grep -q '^preinstall-proxy.service'; then
   systemctl enable preinstall-proxy.service || true
